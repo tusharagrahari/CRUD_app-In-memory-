@@ -1,5 +1,7 @@
 use actix_web::{get, Responder, HttpServer};
 use serde::Serialize;
+mod model;
+pub use crate::model::AppState;
 
 
 #[derive(Serialize)]
