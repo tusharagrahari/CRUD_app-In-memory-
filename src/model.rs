@@ -28,6 +28,12 @@ impl AppState {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct QueryOptions {
+    pub page: Option<usize>,
+    pub limit: Option<usize>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateTodo {
     pub title: Option<String>,

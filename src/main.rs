@@ -1,24 +1,11 @@
-use actix_web::{get, Responder, HttpServer};
+use actix_web::HttpServer;
 use serde::Serialize;
 mod model;
+mod handlers;
+use handlers::health_check_handler;
 mod response;
 pub use crate::model::AppState;
 
-
-#[derive(Serialize)]
-pub struct GenericResponse {
-    pub status: String,
-    pub message: String,
-}
-
-#[get("/health_check")]
-pub async fn health_check_handler() -> impl Responder {
-    let response = GenericResponse {
-        status: "success".to_string(),
-        message: "Server is running".to_string(),
-    };
-    actix_web::HttpResponse::Ok().json(response)
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
