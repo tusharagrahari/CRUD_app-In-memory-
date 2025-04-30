@@ -1,5 +1,4 @@
 use actix_web::HttpServer;
-use serde::Serialize;
 mod model;
 mod handlers;
 use handlers::health_check_handler;

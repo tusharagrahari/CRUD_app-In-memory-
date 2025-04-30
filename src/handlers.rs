@@ -1,8 +1,8 @@
-use actix_web::{get, patch, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, patch, post, web::{self, Data}, HttpResponse, Responder};
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::{model::{QueryOptions, Todo}, response::{GenericResponse, SingleTodoResponse, TodoData, TodoListResponse}, AppState};
+use crate::{model::{QueryOptions, Todo, UpdateTodo}, response::{GenericResponse, SingleTodoResponse, TodoData, TodoListResponse}, AppState};
 
 #[get("/health_check")]
 pub async fn health_check_handler() -> impl Responder {
@@ -94,10 +94,63 @@ async fn create_todo_handler(
 }
 
 
-// #[patch("/todos/{id}")]
-// async fn update_todo_handler() -> impl Responder {
+#[patch("/todos/{id}")]
+async fn update_todo_handler(path: web::Path<String>, body: web::Json<UpdateTodo>, data: web::Data<AppState>) -> 
+    impl Responder {
+        let mut vec = data.todo_db.lock().unwrap();
+
+        let id = path.into_inner();
+        let todo = vec.iter_mut().find(|todo| todo.id == Some(id.to_owned()));
     
-//     HttpResponse::Ok().json(response)
+        if todo.is_none() {
+            let error_response = GenericResponse {
+                status: "fail".to_string(),
+                message: format!("Todo with ID: {} not found", id),
+            };
+            return HttpResponse::NotFound().json(error_response);
+        }
     
-// }
+        let todo = todo.unwrap();
+        let datetime = Utc::now();
+        let payload = Todo {
+            id: todo.id.to_owned(),
+            title: body.title.to_owned().unwrap_or(todo.title.to_owned()),
+            content: body.content.to_owned().unwrap_or(todo.content.to_owned()),
+            completed: if body.completed.is_some() {
+                body.completed
+            } else {
+                todo.completed
+            },
+            created_at: todo.created_at.to_owned(),
+            updated_at: Some(datetime),
+        };
+        *todo = payload;
+    
+        let json_response = SingleTodoResponse {
+            status: "success".to_string(),
+            data: TodoData { todo: todo.clone() },
+        };
+    
+        HttpResponse::Ok().json(json_response)
+}
+
+
+#[delete("/todos/{id}")]
+async fn delete_todo_handler(path: web::Path<String>, data: web::Data<AppState>) -> impl Responder {
+    let mut vec = data.todo_db.lock().unwrap();
+
+    let id = path.into_inner();
+    let todo = vec.iter_mut().find(|todo| todo.id == Some(id.to_owned()));
+
+    if todo.is_none() {
+        let error_response = GenericResponse {
+            status: "fail".to_string(),
+            message: format!("Todo with ID: {} not found", id),
+        };
+        return HttpResponse::NotFound().json(error_response);
+    }
+
+    vec.retain(|todo| todo.id != Some(id.to_owned()));
+    HttpResponse::NoContent().finish()
+}
 
