@@ -2,7 +2,6 @@ use actix_cors::Cors;
 use actix_web::{http::header, web, App, HttpServer};
 mod model;
 mod handlers;
-use handlers::health_check_handler;
 mod response;
 pub use crate::model::AppState;
 

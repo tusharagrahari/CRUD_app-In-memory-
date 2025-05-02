@@ -1,4 +1,4 @@
-use actix_web::{delete, get, patch, post, web::{self, Data}, HttpResponse, Responder};
+use actix_web::{delete, get, patch, post, web::{self}, HttpResponse, Responder};
 use chrono::Utc;
 use uuid::Uuid;
 
