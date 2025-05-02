@@ -154,3 +154,16 @@ async fn delete_todo_handler(path: web::Path<String>, data: web::Data<AppState>)
     HttpResponse::NoContent().finish()
 }
 
+
+pub fn config(conf: &mut web::ServiceConfig) {
+    let scope = web::scope("/api")
+        .service(health_check_handler)
+        .service(get_todos_handler)
+        .service(create_todo_handler)
+        .service(get_todo_handler)
+        .service(update_todo_handler)
+        .service(delete_todo_handler);
+
+    conf.service(scope);
+}
+

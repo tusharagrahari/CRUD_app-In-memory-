@@ -1,4 +1,5 @@
-use actix_web::HttpServer;
+use actix_cors::Cors;
+use actix_web::{http::header, web, App, HttpServer};
 mod model;
 mod handlers;
 use handlers::health_check_handler;
@@ -8,14 +9,28 @@ pub use crate::model::AppState;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Server starting on port 8080");
+    let todo_db = AppState::new();
+    let app_data = web::Data::new(todo_db);
 
-    HttpServer::new(|| {
-        println!("Server is running");
-        actix_web::App::new()
-            .service(health_check_handler)
+    println!("🚀 Server started successfully");
+
+    HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_origin("http://localhost:3000/")
+            .allowed_methods(vec!["GET", "POST"])
+            .allowed_headers(vec![
+                header::CONTENT_TYPE,
+                header::AUTHORIZATION,
+                header::ACCEPT,
+            ])
+            .supports_credentials();
+        App::new()
+            .app_data(app_data.clone())
+            .configure(handlers::config)
+            .wrap(cors)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(("127.0.0.1", 8000))?
     .run()
     .await
 }
